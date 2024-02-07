@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "message-watsapp"
+version = "0.1.0"
+description = "mesagens automatizada para whatsapp"
+authors = ["Geovane Carvalho"]
+license = "Open source"
+readme = "README.md"
+packages = [{include = "message_watsapp"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+selenium = "^4.17.2"
+webdriver-manager = "^4.0.1"
+tqdm = "^4.66.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
