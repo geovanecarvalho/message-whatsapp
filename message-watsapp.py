@@ -32,15 +32,21 @@ with open('contato.csv', 'r') as file:
 
            
 for nome, telefone in tqdm(lista):
+    nome = nome.strip()
+    nome = nome.title()
     try:
         # pesquisar número
         sleep(2)
-        browser.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/div[3]/header/div[2]/div/span/div[5]/div').click()
+        browser.find_element(By.CSS_SELECTOR, '#app > div > div.two._1jJ70 > div._2Ts6i._3RGKj > header > div._604FD > div > span > div:nth-child(5) > div').click()
 
         # inserir número
         sleep(2)
         browser.find_element(By.XPATH, '//*[@id="app"]/div/div[2]/div[2]/div[1]/span/div/span/div/div[1]/div[2]/div[2]/div/div[1]/p').send_keys(telefone)
                       
+        # Aguardar carregamento de contato.
+        while len(browser.find_elements(By.XPATH, '//*[@id="app"]/div/div[2]/div[2]/div[1]/span/div/span/div/div[1]/div[2]/span/div/span')) > 0:
+            pass
+
         # Se o número existir enviar mensagem
         sleep(5)
         while len(browser.find_elements(By.XPATH, '//*[@id="app"]/div/div[2]/div[2]/div[1]/span/div/span/div/div[2]/div[2]/div[2]/div/div/span')) > 0:
@@ -54,6 +60,7 @@ for nome, telefone in tqdm(lista):
             data_atual = data.strftime('%d/%m/%Y')
             horas = str(datetime.now())
             horas = int(horas[11:-13])
+
 
             if horas >= 6 and horas < 12:
                 mensagem = f'Bom dia! *{nome}*, aqui é do Cemitério Jardim Paraiso. Em nosso sistema, foram encontrados débitos anteriores à *{data_atual}*. Por favor entre em contato conosco para regularização. Caso já tenha sido pago, por favor desconsiderar.'
@@ -87,12 +94,6 @@ for nome, telefone in tqdm(lista):
             sleep(2)
    
     # se houver erro mostrar erro        
-    except ArithmeticError as Erro:
-        pass
+    except AssertionError as erro:
+        print(erro)
         
-
-
-
-
-# carregamento
-# //*[@id="app"]/div/div[2]/div[2]/div[1]/span/div/span/div/div[1]/div[2]/span/div/span
