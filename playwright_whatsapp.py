@@ -94,23 +94,29 @@ def send_message(page, contact_name, phone_number):
         try:
             no_result_locator = page.locator('span._ao3e', has_text=f'Nenhum resultado encontrado para “{phone_number}”')
             print(no_result_locator)
-            sleep(50)
             if no_result_locator.is_visible():
                 print(f"Número {phone_number} não encontrado no WhatsApp.")
                 page.click('span[data-icon="back"]')
                 sleep(2)
                 print(f"Contato não encontrado no WhatsApp.")
                 status = False
+            else:
+                contact_locators = page.locator('span._ao3e').first  # Captura todos os elementos com a classe _ao3e
+                if contact_locators.is_visible():   
+                    contact_locators.click()
+                    status = True
+                    
+                    # Enviar imagem e mensagem
+                    upload_and_send_image(page, "./img/jardimParaiso.png")
+                    sleep(3)
+                    page.fill('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div[1]/div[2]/div[1]/p', get_greeting_message(contact_name))
+                    sleep(2)
+                    page.click('span[data-icon="send"]')
+                    sleep(2)
+
         except Exception as e:
             print(f"Erro ao verificar se o número foi encontrado: {e}")
 
-        # Verificar se o contato foi encontrado (número ou nome)
-        print("Verificando se o contato foi encontrado...")
-        contact_locators = page.locator('span._ao3e').first  # Captura todos os elementos com a classe _ao3e
-        if contact_locators.is_visible():   
-            contact_locators.click()
-            status = True  
-        
         return status
 
     except Exception as e:
@@ -120,13 +126,15 @@ def send_message(page, contact_name, phone_number):
 def upload_and_send_image(page, image_path):
     """Faz upload de uma imagem e envia."""
     print(f"Enviando imagem {image_path}...")
-
-    sleep(2)
     # clica no botão de +
-    page.click('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div/div[1]/button/span')
     sleep(3)
-    page.set_input_files('//*[@id="app"]/div/span[5]/div/ul/div/div/div[2]/li/div/input', os.path.abspath(image_path))
+    plus_icon_locator = page.locator('span[data-icon="plus"]')
+    plus_icon_locator.click()
     sleep(3)
+    page.set_input_files('input[accept="image/*,video/mp4,video/3gpp,video/quicktime"][type="file"]', os.path.abspath(image_path))
+    sleep(3)
+    page.locator('span[data-icon="send"]').click()
+
     
     
     print(f"Imagem {image_path} enviada.")
