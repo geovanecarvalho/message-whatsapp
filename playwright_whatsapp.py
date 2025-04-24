@@ -1,8 +1,6 @@
 from playwright.sync_api import sync_playwright
 from tqdm import tqdm
-import csv
-import os
-import re
+import csv, traceback, sys, os, re
 from datetime import datetime
 from time import sleep
 
@@ -73,57 +71,59 @@ def get_greeting_message(name):
 def send_message(page, contact_name, phone_number):
     """Envia uma mensagem para o contato especificado."""
     print(f"Enviando mensagem para {contact_name} ({phone_number})...")
-    
-    # clicar no botão de +
-    sleep(2)
-    page.click('//*[@id="app"]/div/div[3]/div/div[3]/header/header/div/span/div/div[1]/button/span')
-    sleep(2)
-    
-    # capturar campo de input
-    search_box = page.query_selector('//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/div[1]/div[2]/div[2]/div/div/p')
-    sleep(1)
-    
-    # inserir mensagem
-    search_box.fill(phone_number)
-    sleep(3)
+    status = False
+    try:
+        # Clicar no botão de nova conversa
+        print("Clicando no botão de nova conversa...")
+        page.click('span[data-icon="new-chat-outline"]')
 
-    # apertar enter
-    search_box.press('Enter')
-    sleep(2)
-    
-    # verificar se o numero é valido se nao existir uma imagem
-    if not page.query_selector('//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/div[2]/div[2]/div/div/div[2]/div/div/div[1]/div/div/img'): 
-        print(f"Número {phone_number} inválido.")
-        # voltar para pagina anterior
-        sleep(2)    
-        page.click('//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/header/div/div[1]/div/span')
-    # enviar mensagem
-    else:       
-        # Escolher qual função de mensagem
-        # clica no contato
-        page.click('//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/div[2]/div[2]/div/div/div[2]/div/div/div[1]/div/div/img')
-        
-        
-        sleep(5)
-        upload_and_send_image(page, './img/jardimParaiso.png')
-        
+        # Esperar o campo de busca aparecer
+        print("Esperando o campo de busca aparecer...")
+        page.wait_for_selector('p.selectable-text.copyable-text', timeout=10000)
+        print("Campo de busca encontrado.")
+
+        # Inserir o número no campo de busca
+        print("Inserindo o número no campo de busca...")
+        search_box = page.query_selector('p.selectable-text.copyable-text')
+        search_box.fill(phone_number)
+        search_box.press('Enter')
         sleep(2)
 
-        page.fill('//*[@id="app"]/div/div[3]/div/div[2]/div[2]/span/div/div/div/div[2]/div/div[1]/div[3]/div/div/div[1]/div[1]/div[1]/p', get_greeting_message(contact_name))
-        sleep(2)
-        
-        page.click('//*[@id="app"]/div/div[3]/div/div[2]/div[2]/span/div/div/div/div[2]/div/div[2]/div[2]/div/div')
-        
-        sleep(5)
-        print(f"Mensagem enviada para {contact_name} ({phone_number}).")
+        # Verificar se o número não foi encontrado
+        print("Verificando se o número foi encontrado...")
+        try:
+            no_result_locator = page.locator('span._ao3e', has_text=f'Nenhum resultado encontrado para “{phone_number}”')
+            print(no_result_locator)
+            sleep(50)
+            if no_result_locator.is_visible():
+                print(f"Número {phone_number} não encontrado no WhatsApp.")
+                page.click('span[data-icon="back"]')
+                sleep(2)
+                print(f"Contato não encontrado no WhatsApp.")
+                status = False
+        except Exception as e:
+            print(f"Erro ao verificar se o número foi encontrado: {e}")
 
+        # Verificar se o contato foi encontrado (número ou nome)
+        print("Verificando se o contato foi encontrado...")
+        contact_locators = page.locator('span._ao3e').first  # Captura todos os elementos com a classe _ao3e
+        if contact_locators.is_visible():   
+            contact_locators.click()
+            status = True  
+        
+        return status
 
+    except Exception as e:
+        print(f"Erro ao enviar mensagem para {contact_name}: {e}")
+        return False  # Erro ao enviar mensagem
+    
 def upload_and_send_image(page, image_path):
     """Faz upload de uma imagem e envia."""
     print(f"Enviando imagem {image_path}...")
 
     sleep(2)
-    page.click('//*[@id="main"]/footer/div[1]/div/span/div/div[1]/div/button/span')
+    # clica no botão de +
+    page.click('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div/div[1]/button/span')
     sleep(3)
     page.set_input_files('//*[@id="app"]/div/span[5]/div/ul/div/div/div[2]/li/div/input', os.path.abspath(image_path))
     sleep(3)
@@ -135,24 +135,40 @@ def upload_and_send_image(page, image_path):
 def main():
     with sync_playwright() as playwright:
         page = setup_browser(playwright)
-        wait_for_authentication(page)
-
         contacts = read_contacts('contato.csv')
-        count = 0
-        for name, phone in tqdm(contacts):
-            name = name.strip().upper()
-            phone = format_phone_number(phone)
 
-            try:
-                send_message(page, name, phone)
-                data = datetime.today().strftime("%d/%m/%Y %H:%M")
-                with open("log.txt", "a") as log_file:
-                    log_file.write(f"{name};{phone};{data}\n")
-            except Exception as e:
-                data = datetime.today().strftime("%d/%m/%Y %H:%M")
-                print(f"Erro ao enviar mensagem para {name}: {e}")
-                with open("log.txt", "a") as log_file:
-                    log_file.write(f"{name};{phone} {data}\nErro: {str(e)}\n")
+        # Verifica se o arquivo já existe
+        file_exists = os.path.exists("relatorio.csv")
+
+        # Abre o arquivo CSV no modo de adição
+        with open("relatorio.csv", "a", newline="", encoding="utf-8") as csv_file:
+            csv_writer = csv.writer(csv_file)
+
+            # Escreve o cabeçalho apenas se o arquivo não existir
+            if not file_exists:
+                csv_writer.writerow(["Nome", "Telefone", "Status", "Data/Hora"])  # Cabeçalho do CSV
+
+            for name, phone in tqdm(contacts):
+                try:
+                    result = send_message(page, name, phone)
+                    
+                    # Verifica se o contato foi encontrado
+                    if result:
+                        status = "Enviado"
+                    else:
+                        status = "Não encontrado no WhatsApp"
+
+                    # Escreve no relatório CSV
+                    data = datetime.today().strftime("%d/%m/%Y %H:%M")
+                    csv_writer.writerow([name, phone, status, data])
+
+                except Exception as e:
+                    # Captura o erro e registra no log de erros
+                    data = datetime.today().strftime("%d/%m/%Y %H:%M")
+                    error_trace = traceback.format_exc()
+                    print(f"Erro ao enviar mensagem para {name}: {e}")
+                    with open("log_erros.txt", "a", encoding="utf-8") as log_file:
+                        log_file.write(f"{name};{phone};{data}\nErro: {str(e)}\nTraceback:\n{error_trace}\n")
 
         page.context.browser.close()
         print("Processo concluído.")

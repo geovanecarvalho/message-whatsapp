@@ -1,0 +1,34 @@
+TIARA SAMPAIO;61995161440;24/04/2025 09:25
+Erro: Page.set_input_files: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("//*[@id=\"app\"]/div/span[5]/div/ul/div/div/div[2]/li/div/input")
+
+Traceback:
+Traceback (most recent call last):
+  File "c:\Users\Geovane\.projects\Message-watsapp\playwright_whatsapp.py", line 170, in main
+    result = send_message(page, name, phone)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\Geovane\.projects\Message-watsapp\playwright_whatsapp.py", line 121, in send_message
+    upload_and_send_image(page, './img/jardimParaiso.png')
+  File "c:\Users\Geovane\.projects\Message-watsapp\playwright_whatsapp.py", line 151, in upload_and_send_image
+    page.set_input_files('//*[@id="app"]/div/span[5]/div/ul/div/div/div[2]/li/div/input', os.path.abspath(image_path))
+  File "C:\path\to\cache\directory\virtualenvs\message-watsapp-7dGVqla0-py3.11\Lib\site-packages\playwright\sync_api\_generated.py", line 11194, in set_input_files
+    self._sync(
+  File "C:\path\to\cache\directory\virtualenvs\message-watsapp-7dGVqla0-py3.11\Lib\site-packages\playwright\_impl\_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "C:\path\to\cache\directory\virtualenvs\message-watsapp-7dGVqla0-py3.11\Lib\site-packages\playwright\_impl\_page.py", line 1024, in set_input_files
+    return await self._main_frame.set_input_files(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\path\to\cache\directory\virtualenvs\message-watsapp-7dGVqla0-py3.11\Lib\site-packages\playwright\_impl\_frame.py", line 699, in set_input_files
+    await self._channel.send(
+  File "C:\path\to\cache\directory\virtualenvs\message-watsapp-7dGVqla0-py3.11\Lib\site-packages\playwright\_impl\_connection.py", line 61, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\path\to\cache\directory\virtualenvs\message-watsapp-7dGVqla0-py3.11\Lib\site-packages\playwright\_impl\_connection.py", line 528, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Page.set_input_files: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("//*[@id=\"app\"]/div/span[5]/div/ul/div/div/div[2]/li/div/input")
+
+
