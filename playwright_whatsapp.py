@@ -92,26 +92,28 @@ def send_message(page, contact_name, phone_number):
         # Verificar se o número não foi encontrado
         print("Verificando se o número foi encontrado...")
         try:
-            no_result_locator = page.locator('span._ao3e', has_text=f'Nenhum resultado encontrado para “{phone_number}”')
+            sleep(3)
+            no_result_locator = page.locator('//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/div[2]/div[2]/div/span', has_text=f'Nenhum resultado encontrado para “{phone_number}”')
             print(no_result_locator)
             if no_result_locator.is_visible():
                 print(f"Número {phone_number} não encontrado no WhatsApp.")
-                page.click('span[data-icon="back"]')
+                page.click('//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/header/div/div[1]/div/span')
                 sleep(2)
                 print(f"Contato não encontrado no WhatsApp.")
                 status = False
             else:
-                contact_locators = page.locator('span._ao3e').first  # Captura todos os elementos com a classe _ao3e
+                
+                contact_locators = page.locator('//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/div[2]/div[3]/div[2]/div/div/span').first  # Captura todos os elementos com a classe _ao3e
                 if contact_locators.is_visible():   
                     contact_locators.click()
                     status = True
                     
                     # Enviar imagem e mensagem
-                    upload_and_send_image(page, "./img/jardimParaiso.png")
-                    sleep(3)
-                    page.fill('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div[1]/div[2]/div[1]/p', get_greeting_message(contact_name))
+                    # upload_and_send_image(page, "./img/jardimParaiso.png")
                     sleep(2)
-                    page.click('span[data-icon="send"]')
+                    page.fill('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div/div[3]/div[1]/p', get_greeting_message(contact_name))
+                    sleep(2)
+                    page.click('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div/div[4]/button')
                     sleep(2)
 
         except Exception as e:
