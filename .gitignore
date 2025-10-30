@@ -1,3 +1,6 @@
 *.spec
 contato.csv
 log.txt
+whatsapp_profile/
+poetry.lock
+relatorio.csv
