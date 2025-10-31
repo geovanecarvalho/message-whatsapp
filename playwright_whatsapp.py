@@ -80,11 +80,11 @@ def format_phone_number(phone):
 def get_greeting_message(name):
     """Retorna uma mensagem de saudação personalizada com base na hora atual."""
     current_hour = datetime.now().hour
-    greeting = "Bom dia!" if current_hour < 12 else "Boa tarde!" if current_hour < 18 else "Boa noite!"
+    greeting = "🤗 Bom dia!" if current_hour < 12 else "🤗 Boa tarde!" if current_hour < 18 else "🤗 Boa noite!"
     data_atual = datetime.now().strftime('%d/%m/%Y')
-    return (f'{greeting} *{name}*, aqui é do Cemitério Jardim Paraíso. '
-            f'Em nosso sistema, foram encontrados débitos anteriores à *{data_atual}*. '
-            f'Por favor entre em contato conosco para regularização. Caso já tenha sido pago, por favor desconsiderar.')
+    return (f'{greeting} *{name}*, aqui é do Cemitério Jardim Paraíso ✝️. '
+            f'\n📑Em nosso sistema, foram encontrados débitos anteriores à *{data_atual}*. '
+            f'\n📌Por favor entre em contato conosco para regularização. Caso já tenha sido pago, por favor desconsiderar.')
 
 
 def send_message(page, contact_name, phone_number):
@@ -112,20 +112,28 @@ def send_message(page, contact_name, phone_number):
         print("Verificando se o número foi encontrado...")
         try:
             
+            print("entrou no try de verificação...")
             
             no_result_locator = page.locator(
-                '/*[@id="app"]/div[1]/div/div[3]/div/div[2]/div[1]/div/span/div/span/div/div[2]/div[2]/div/span',
+                # numero invalido
+                '//*[@id="app"]/div[1]/div/div[3]/div/div[2]/div[1]/div/span/div/span/div/div[2]/div[2]/div/span',
                 has_text=f'Nenhum resultado encontrado para “{phone_number}”'
             )
             if no_result_locator.is_visible():
-                print(f"Número {phone_number} não encontrado no WhatsApp.")
+                print(f"Número {phone_number} não encontrado no WhatsApp. Clicando em nova conversa...")
                 
-                page.click('//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/header/div/div[1]/div/span')
+                # se não encontrado numero clicar em nova conversa
+
+                page.click('//*[@id="app"]/div[1]/div/div[3]/div/div[2]/div[1]/div/span/div/span/div/header/div/div[1]/div/span/div/div/div[1]/div[1]/span')
                 sleep(2)
                 status = False
             else:
+                
+                # se encontrado numero clicar no contato
+                print("Número encontrado, clicando no contato...")
+                
                 contact_locators = page.locator(
-                    '//*[@id="app"]/div/div[3]/div/div[2]/div[1]/span/div/span/div/div[2]/div[3]/div[2]/div/div/span'
+                    '//*[@id="app"]/div[1]/div/div[3]/div/div[2]/div[1]/div/span/div/span/div/div[2]/div[3]/div[2]/div/div/span'
                 ).first
                 if contact_locators.is_visible():
                     contact_locators.click()
@@ -133,9 +141,11 @@ def send_message(page, contact_name, phone_number):
 
                     sleep(2)
                     message = get_greeting_message(contact_name)
+                    # enviar a mensagem
                     page.fill('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div/div[3]/div[1]/p', message)
                     sleep(2)
-                    page.click('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div/div[4]/button')
+                    # clicar no botão de enviar
+                    page.click('//*[@id="main"]/footer/div[1]/div/span/div/div[2]/div/div[4]/div/span/div/div/div[1]/div[1]/span')
                     sleep(2)
 
         except Exception as e:
